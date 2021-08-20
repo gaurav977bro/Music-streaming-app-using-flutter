@@ -75,7 +75,16 @@ class FormContent extends StatelessWidget {
 }
 
 // TEXT FORM FOR EMAIL AND PASSOWRD
-class TextFormFields extends StatelessWidget {
+class TextFormFields extends StatefulWidget {
+  @override
+  _TextFormFieldsState createState() => _TextFormFieldsState();
+}
+
+class _TextFormFieldsState extends State<TextFormFields> {
+  int _count = 0;
+
+  bool _tapped = false;
+
   final _formKey = GlobalKey<FormState>();
 
   verify(BuildContext context) {
@@ -116,17 +125,35 @@ class TextFormFields extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   prefixIcon: Icon(Icons.email, color: Colors.pink),
+                  hintStyle: TextStyle(color: Colors.green),
                   hintText: "Enter your email",
+                  labelStyle: TextStyle(color: Colors.green),
                   labelText: "Email",
                 )),
             SizedBox(
               height: 30,
             ),
             TextFormField(
+              obscureText: _tapped ? false : true,
               decoration: InputDecoration(
                 filled: true,
-                prefixIcon: Icon(Icons.lock, color: Colors.pink),
-                suffixIcon: Icon(Icons.visibility, color: Colors.pink),
+                prefixIcon:_tapped?Icon(Icons.lock_open_outlined,color:Colors.pink): Icon(Icons.lock, color: Colors.pink),
+                suffix: GestureDetector(
+                    child: _tapped
+                        ? Icon(Icons.visibility_off,color:Colors.pink)
+                        : Icon(Icons.visibility,color:Colors.pink),
+                    onTap: () {
+                      _count++;
+
+                      if (_count % 2 != 0) {
+                        _tapped = true;
+                      } else {
+                        _tapped = false;
+                      }
+                      setState(() {});
+                    }),
+                hintStyle: TextStyle(color: Colors.green),
+                labelStyle: TextStyle(color: Colors.green),
                 hintText: "Enter you password",
                 labelText: "Password",
                 border:
@@ -149,7 +176,7 @@ class TextFormFields extends StatelessWidget {
             SizedBox(height: 50),
             ElevatedButton(
                 child: Text("Login"),
-                onPressed: () =>verify(context),
+                onPressed: () => verify(context),
                 style: ElevatedButton.styleFrom(minimumSize: Size(100, 40)))
           ],
         ),

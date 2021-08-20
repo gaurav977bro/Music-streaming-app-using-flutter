@@ -12,7 +12,7 @@ class MyMusic extends StatelessWidget {
   @override///
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme:ThemeData(primarySwatch:Colors.pink),
+      theme:ThemeData(primarySwatch:Colors.green),
       initialRoute:"/login",
       routes:{
         "/login":(context)=>Login(),
