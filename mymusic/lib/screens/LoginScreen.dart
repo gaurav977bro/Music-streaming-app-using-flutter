@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:form_field_validator/form_field_validator.dart';
 import 'HomeScreen.dart';
 
 void main() {
@@ -90,6 +90,7 @@ class _TextFormFieldsState extends State<TextFormFields> {
   verify(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+      setState(() {});
     }
   }
 
@@ -110,12 +111,11 @@ class _TextFormFieldsState extends State<TextFormFields> {
               height: 50,
             ),
             TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Cannot be empty";
-                  }
-                  return null;
-                },
+                autovalidate: true,
+                validator: MultiValidator([
+                  RequiredValidator(errorText: "Required*"),
+                  EmailValidator(errorText: "Invalid Email"),
+                ]),
                 decoration: InputDecoration(
                   filled: true,
                   border: OutlineInputBorder(
@@ -137,11 +137,13 @@ class _TextFormFieldsState extends State<TextFormFields> {
               obscureText: _tapped ? false : true,
               decoration: InputDecoration(
                 filled: true,
-                prefixIcon:_tapped?Icon(Icons.lock_open_outlined,color:Colors.pink): Icon(Icons.lock, color: Colors.pink),
+                prefixIcon: _tapped
+                    ? Icon(Icons.lock_open_outlined, color: Colors.pink)
+                    : Icon(Icons.lock, color: Colors.pink),
                 suffix: GestureDetector(
                     child: _tapped
-                        ? Icon(Icons.visibility_off,color:Colors.pink)
-                        : Icon(Icons.visibility,color:Colors.pink),
+                        ? Icon(Icons.visibility_off, color: Colors.pink)
+                        : Icon(Icons.visibility, color: Colors.pink),
                     onTap: () {
                       _count++;
 
@@ -162,16 +164,14 @@ class _TextFormFieldsState extends State<TextFormFields> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Cannot be empty";
-                }
-                if (value.length < 5) {
-                  return "Atleast 5 characters";
-                }
-
-                return null;
-              },
+              autovalidate: true,
+              validator: MultiValidator([
+                RequiredValidator(errorText: "Required*"),
+                MinLengthValidator(5, errorText: "Atleast 6 characters"),
+                PatternValidator(r'(?=.*?[#?!@$%^&*-])',
+                    errorText:
+                        'passwords must have at least one special character')
+              ]),
             ),
             SizedBox(height: 50),
             ElevatedButton(

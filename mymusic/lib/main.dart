@@ -7,19 +7,19 @@ void main() {
 }
 
 class MyMusic extends StatelessWidget {
-  const MyMusic({ Key? key }) : super(key: key);
+  const MyMusic({Key? key}) : super(key: key);
 
-  @override///
+  @override
+
+  ///
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme:ThemeData(primarySwatch:Colors.green),
-      initialRoute:"/login",
-      routes:{
-        "/login":(context)=>Login(),
-        "/home":(context)=>Home(),
-      }
-      
-      
-    );
+        theme: ThemeData(primarySwatch: Colors.green),
+        initialRoute: "/login",
+        debugShowCheckedModeBanner: false,
+        routes: {
+          "/login": (context) => Login(),
+          "/home": (context) => Home(),
+        });
   }
 }
