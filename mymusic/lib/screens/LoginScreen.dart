@@ -81,6 +81,11 @@ class _LoginState extends State<Login> {
                           Text("Phone Verification",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20)),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Text("Correct Format = [+][Country-code][number]",
+                              style: TextStyle(color: Colors.blue)),
                           SizedBox(height: 25),
                           TextFormField(
                             controller: numberController,
