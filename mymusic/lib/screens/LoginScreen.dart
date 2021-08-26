@@ -4,68 +4,143 @@ import 'package:form_field_validator/form_field_validator.dart';
 
 import 'HomeScreen.dart';
 
-enum MobilVerificationState { SHOW_PHONE_STATE, SHOW_OTP_STATE }
+enum MobileVerificationState {
+  SHOW_PHONENUMBER_PAGE,
+  SHOW_OTP_PAGE,
+}
 
-class Login extends StatelessWidget {
-  final _formkey = GlobalKey<FormState>();
+class Login extends StatefulWidget {
+  const Login({Key? key}) : super(key: key);
 
-  final currentState = MobilVerificationState.SHOW_PHONE_STATE;
+  @override
+  _LoginState createState() => _LoginState();
+}
 
-  final phoneController = TextEditingController();
-  final otpController = TextEditingController();
+class _LoginState extends State<Login> {
+  final _formKey = GlobalKey<FormState>();
 
   FirebaseAuth _auth = FirebaseAuth.instance;
 
+  final numberController = TextEditingController();
+  final otpController = TextEditingController();
+  bool showLoading = false;
+
+  var VerificationId;
+
+  MobileVerificationState currentState =
+      MobileVerificationState.SHOW_PHONENUMBER_PAGE;
+
+  void signWithCredential(AuthCredential phoneAuthCredential) async {
+    setState(() {
+      showLoading = true;
+    });
+
+    try {
+      final authCredential =
+          await _auth.signInWithCredential(phoneAuthCredential);
+      setState(() {
+        showLoading = false;
+      });
+
+      if (authCredential.user != null) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => Home()));
+      }
+    } on FirebaseException catch (e) {
+      setState(() {
+        showLoading = false;
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
   getLogin(context) {
     return Scaffold(
-        backgroundColor: Colors.blueGrey[900],
+        backgroundColor: Colors.blue[800],
         body: SafeArea(
             child: SingleChildScrollView(
                 padding: EdgeInsets.only(top: 200, left: 20, right: 20),
                 child: Container(
-                    padding: EdgeInsets.all(10),
-                    width: double.infinity,
                     decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.pink,
-                          offset: Offset(-10, -20),
-                          blurRadius: 20,
-                        )
-                      ],
-                      color: Color.fromRGBO(255, 255, 255, 1),
-                      borderRadius: BorderRadius.only(
-                          bottomRight: Radius.circular(30),
-                          topLeft: Radius.circular(30)),
-                    ),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                              offset: Offset(10, 10),
+                              color: Colors.black,
+                              blurRadius: 20)
+                        ],
+                        borderRadius: BorderRadius.only(
+                            bottomRight: Radius.circular(20),
+                            topLeft: Radius.circular(20))),
+                    padding: EdgeInsets.all(20),
                     child: Form(
-                      key: this._formkey,
+                      key: _formKey,
                       child: Column(
                         children: [
-                          SizedBox(height: 30),
-                          // TEXT FIELD FOR PHONE NO
+                          Text("Phone Verification",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20)),
+                          SizedBox(height: 25),
                           TextFormField(
-                              controller: phoneController,
-                              validator: MultiValidator([
-                                MinLengthValidator(10,
-                                    errorText: "should be 10 digits.")
-                              ]),
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  labelText: "Enter phone number")),
-                          SizedBox(height: 30),
+                            controller: numberController,
+                            autovalidate: true,
+                            validator: MultiValidator([
+                              RequiredValidator(errorText: "Cannot be empty*"),
+                              MinLengthValidator(10,
+                                  errorText: "Must be 10 digits"),
+                            ]),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              hintText: "Enter Phone Number",
+                            ),
+                          ),
+                          SizedBox(height: 25),
                           ElevatedButton(
                               onPressed: () async {
-                                if (_formkey.currentState!.validate()) {
-                                   await _auth.verifyPhoneNumber(
-                                      phoneNumber: phoneController.text,
-                                       verificationCompleted: verificationCompleted,
-                                       verificationFailed: verificationFailed, codeSent: codeSent,
-                                       codeAutoRetrievalTimeout: codeAutoRetrievalTimeout)
+                                if (_formKey.currentState!.validate()) {
+                                  showLoading = true;
+                                  await _auth.verifyPhoneNumber(
+                                      //1
+                                      phoneNumber: numberController.text,
+                                      //2
+                                      verificationCompleted:
+                                          (phoneAuthCredential) async {
+                                        setState(() {
+                                          showLoading = false;
+                                        });
+                                        //signWithCredential(phoneAuthCredential);
+                                      },
+                                      //3
+                                      verificationFailed:
+                                          (phoneVerificationFailed) {
+                                        setState(() {
+                                          showLoading = false;
+                                        });
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                                content: Text(
+                                                    phoneVerificationFailed
+                                                        .message)));
+                                      },
+                                      //4
+                                      codeSent: (verificationId,
+                                          resendingToken) async {
+                                        setState(() {
+                                          showLoading = false;
+                                          currentState = MobileVerificationState
+                                              .SHOW_OTP_PAGE;
+                                          this.VerificationId = verificationId;
+                                        });
+                                      },
+                                      //5
+                                      codeAutoRetrievalTimeout:
+                                          (verificationId) async {});
                                 }
                               },
-                              child: Text("Verify"))
+                              child: Text("Send OTP")),
                         ],
                       ),
                     )))));
@@ -73,45 +148,57 @@ class Login extends StatelessWidget {
 
   getOtp(context) {
     return Scaffold(
-        backgroundColor: Colors.blueGrey[900],
+        backgroundColor: Colors.blue[800],
         body: SafeArea(
             child: SingleChildScrollView(
                 padding: EdgeInsets.only(top: 200, left: 20, right: 20),
                 child: Container(
-                    padding: EdgeInsets.all(10),
-                    width: double.infinity,
                     decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.pink,
-                          offset: Offset(-10, -20),
-                          blurRadius: 30,
-                        )
-                      ],
-                      color: Color.fromRGBO(255, 255, 255, 1),
-                      borderRadius: BorderRadius.only(
-                          bottomRight: Radius.circular(30),
-                          topLeft: Radius.circular(30)),
-                    ),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                              offset: Offset(10, 10),
+                              color: Colors.black,
+                              blurRadius: 20)
+                        ],
+                        borderRadius: BorderRadius.only(
+                            bottomRight: Radius.circular(20),
+                            topLeft: Radius.circular(20))),
+                    padding: EdgeInsets.all(20),
                     child: Form(
-                      key: this._formkey,
+                      key: _formKey,
                       child: Column(
                         children: [
-                          SizedBox(height: 30),
-                          // TEXT FIELD FOR PHONE NO
+                          Text("OTP Verification",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20)),
+                          SizedBox(height: 25),
                           TextFormField(
-                              controller: otpController,
-                              // validator: MultiValidator([
-                              //   MinLengthValidator(10,
-                              //       errorText: "should be 10 digits.")
-                              // ]),
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  labelText: "Enter OTP")),
-                          SizedBox(height: 30),
+                            controller: otpController,
+                            autovalidate: true,
+                            validator: MultiValidator([
+                              RequiredValidator(errorText: "Cannot be empty*"),
+                            ]),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              hintText: "Enter OTP",
+                            ),
+                          ),
+                          SizedBox(height: 25),
                           ElevatedButton(
-                              onPressed: () {}, child: Text("Verify"))
+                              onPressed: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  AuthCredential phoneAuthCredential =
+                                      PhoneAuthProvider.credential(
+                                          verificationId: this.VerificationId,
+                                          smsCode: otpController.text);
+
+                                  signWithCredential(phoneAuthCredential);
+                                }
+                              },
+                              child: Text("Verify OTP")),
                         ],
                       ),
                     )))));
@@ -119,10 +206,10 @@ class Login extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: currentState == MobilVerificationState.SHOW_PHONE_STATE
-          ? getLogin(context)
-          : getOtp(context),
-    );
+    return showLoading
+        ? Center(child: CircularProgressIndicator())
+        : currentState == MobileVerificationState.SHOW_PHONENUMBER_PAGE
+            ? getLogin(context)
+            : getOtp(context);
   }
 }
