@@ -1,23 +1,21 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mymusic/screens/Player.dart';
-import 'package:mymusic/widgets/DataWidget.dart';
+import 'package:mymusic/widgets/MyDrawer.dart';
+import 'package:mymusic/widgets/SongWidget.dart';
 
 import 'LoginScreen.dart';
+import 'MusicScreen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+void main() {
   runApp(Home());
 }
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-
   @override
   _HomeState createState() => _HomeState();
 }
@@ -25,20 +23,18 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     load();
   }
 
   load() async {
-    final data = await rootBundle.loadString("assets/data/songs.json");
-    final decodedData = jsonDecode(data);
+    var data = await rootBundle.loadString("assets/data/songs.json");
+    var decodedData = jsonDecode(data);
     var productData = decodedData["songs"];
 
-    SongsWidget.Songlist = List.of(productData)
+    SongsWidget.songList = List.of(productData)
         .map<Songs>((songs) => Songs.fromMap(songs))
         .toList();
-
     setState(() {});
   }
 
@@ -47,75 +43,47 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        drawer: Drawer(
-            child: Container(
-          color: Colors.blue,
-          child: Column(
-            children: [
-              Container(
-                child: DrawerHeader(
-                    child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.blueGrey[900],
-                      borderRadius: BorderRadius.circular(10)),
-                  child: UserAccountsDrawerHeader(
-                    currentAccountPictureSize: Size(50, 50),
-                    accountEmail: Text("email"),
-                    accountName: Text("name"),
-                    currentAccountPicture: CircleAvatar(
-                      backgroundImage: NetworkImage(
-                          "https://i1.wp.com/azsongslyrics.com/wp-content/uploads/2020/05/Sunflower-lyrics-Post-Malone.jpg?fit=1280%2C720&ssl=1"),
-                    ),
-                  ),
-                )),
-              ),
-              SizedBox(height: 30),
-              ListTile(
-                onTap: () {},
-                leading: Icon(Icons.settings, color: Colors.white),
-                title: Text("Settings", style: TextStyle(color: Colors.white)),
-                subtitle: Text("account settings",
-                    style: TextStyle(color: Colors.white)),
-                trailing: Icon(Icons.arrow_forward, color: Colors.white),
-              ),
-              ListTile(
-                onTap: () {
-                  _auth.signOut();
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Login()));
-                },
-                leading: Icon(Icons.logout, color: Colors.white),
-                title: Text("Exit", style: TextStyle(color: Colors.white)),
-                subtitle: Text("Logout", style: TextStyle(color: Colors.white)),
-                trailing: Icon(Icons.arrow_forward, color: Colors.white),
-              )
-            ],
-          ),
-        )),
-        backgroundColor: Colors.blueGrey[900],
-        appBar: AppBar(
-          title: Text("Songs"),
-        ),
+        drawer: My_Drawer(),
+        // Drawer(
+        //     child: Container(
+        //         decoration: BoxDecoration(
+        //             gradient: LinearGradient(
+        //                 colors: [Colors.black, Colors.blue],
+        //                 begin: Alignment.topLeft,
+        //                 end: Alignment.bottomRight)))),
+        appBar: AppBar(),
         body: Container(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: EdgeInsets.only(left: 20, top: 5),
-              child: Text("Trending.....",
-                  style: TextStyle(color: Colors.white, fontSize: 20)),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Expanded(child: SongList()),
-          ],
-        )));
+            decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [
+              Colors.blue,
+              Colors.black,
+            ], begin: Alignment.topLeft, end: Alignment.bottomRight)),
+            child: SafeArea(
+                child: Container(
+                    width: double.infinity,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                      colors: [Colors.blue, Colors.black],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight)),
+                              padding:
+                                  EdgeInsets.only(top: 5, left: 10, bottom: 5),
+                              child: Text("Songs....",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 20))),
+                          Expanded(child: SongList()),
+                        ])))));
   }
 }
 
 class SongList extends StatefulWidget {
+  const SongList({Key? key}) : super(key: key);
+
   @override
   _SongListState createState() => _SongListState();
 }
@@ -125,31 +93,34 @@ class _SongListState extends State<SongList> {
   Widget build(BuildContext context) {
     return ListView.builder(
       itemBuilder: (context, index) {
-        final items = SongsWidget.Songlist[index];
+        final item = SongsWidget.songList[index];
         return Card(
-          margin: EdgeInsets.only(right: 5, left: 5, top: 0, bottom: 5),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          elevation: 5,
-          shadowColor: Colors.blue,
-          clipBehavior: Clip.hardEdge,
-          color: Colors.black,
-          borderOnForeground: true,
-          child: ListTile(
+            elevation: 10,
+            shadowColor: Colors.black,
+            color: Colors.black,
+            child: ListTile(
+              contentPadding: EdgeInsets.all(20),
               onTap: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => PlayMusic(contents: items)));
+                        builder: (context) => Player(contents: item)));
               },
-              contentPadding: EdgeInsets.all(20),
-              leading: Container(width: 100, child: Image.network(items.image)),
-              title: Text(items.name, style: TextStyle(color: Colors.white)),
-              subtitle: Text(items.description,
-                  style: TextStyle(color: Colors.white))),
-        );
+              leading: Container(
+                width: 100,
+                child: Image.network(item.image),
+              ),
+              title: Text(
+                item.name,
+                style: TextStyle(color: Colors.white),
+              ),
+              subtitle:
+                  Text(item.description, style: TextStyle(color: Colors.white)),
+            ),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)));
       },
-      itemCount: SongsWidget.Songlist.length,
+      itemCount: SongsWidget.songList.length,
     );
   }
 }

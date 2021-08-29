@@ -1,32 +1,32 @@
 import 'dart:convert';
 
 class SongsWidget {
-  static List<Songs> Songlist = [];
+  static List<Songs> songList = [];
 }
 
 class Songs {
   final int id;
-  final String image;
   final String name;
+  final String image;
   final String description;
 
   Songs({
     required this.id,
-    required this.image,
     required this.name,
+    required this.image,
     required this.description,
   });
 
   Songs copyWith({
     int? id,
-    String? image,
     String? name,
+    String? image,
     String? description,
   }) {
     return Songs(
       id: id ?? this.id,
-      image: image ?? this.image,
       name: name ?? this.name,
+      image: image ?? this.image,
       description: description ?? this.description,
     );
   }
@@ -34,8 +34,8 @@ class Songs {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'image': image,
       'name': name,
+      'image': image,
       'description': description,
     };
   }
@@ -43,8 +43,8 @@ class Songs {
   factory Songs.fromMap(Map<String, dynamic> map) {
     return Songs(
       id: map['id'],
-      image: map['image'],
       name: map['name'],
+      image: map['image'],
       description: map['description'],
     );
   }
@@ -55,7 +55,7 @@ class Songs {
 
   @override
   String toString() {
-    return 'Songs(id: $id, image: $image, name: $name, description: $description)';
+    return 'Songs(id: $id, name: $name, image: $image, description: $description)';
   }
 
   @override
@@ -64,13 +64,13 @@ class Songs {
 
     return other is Songs &&
         other.id == id &&
-        other.image == image &&
         other.name == name &&
+        other.image == image &&
         other.description == description;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^ image.hashCode ^ name.hashCode ^ description.hashCode;
+    return id.hashCode ^ name.hashCode ^ image.hashCode ^ description.hashCode;
   }
 }

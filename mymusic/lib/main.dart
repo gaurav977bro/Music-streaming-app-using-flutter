@@ -16,11 +16,9 @@ class MyMusic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(primarySwatch: Colors.blue),
-      debugShowCheckedModeBanner: false,
-      home: Home(),
-      // KeepLogged(),
-    );
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: Home());
   }
 }
 
@@ -32,19 +30,20 @@ class KeepLogged extends StatefulWidget {
 class _KeepLoggedState extends State<KeepLogged> {
   FirebaseAuth _auth;
   User _user;
-  bool loading = true;
+  bool isLoading = true;
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
     _auth = FirebaseAuth.instance;
     _user = _auth.currentUser;
-    loading = false;
+    isLoading = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return loading
+    return isLoading
         ? Scaffold(body: Center(child: CircularProgressIndicator()))
         : _user == null
             ? Login()

@@ -4,217 +4,222 @@ import 'package:form_field_validator/form_field_validator.dart';
 
 import 'HomeScreen.dart';
 
+void main() {
+  runApp(Login());
+}
+
 enum MobileVerificationState {
-  SHOW_PHONENUMBER_PAGE,
-  SHOW_OTP_PAGE,
+  Show_login,
+  show_otp,
 }
 
 class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
-
   @override
   _LoginState createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
-  final _formKey = GlobalKey<FormState>();
+  final _key = GlobalKey<FormState>();
+
+  MobileVerificationState currentState = MobileVerificationState.Show_login;
 
   FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final numberController = TextEditingController();
-  final otpController = TextEditingController();
-  bool showLoading = false;
-
+  var phoneController = TextEditingController();
+  var otpController = TextEditingController();
   var VerificationId;
 
-  MobileVerificationState currentState =
-      MobileVerificationState.SHOW_PHONENUMBER_PAGE;
+  bool showLoading = false;
+  bool tapped = false;
 
-  void signWithCredential(AuthCredential phoneAuthCredential) async {
+// For verification after OTP is revieved
+  void signIn(AuthCredential phoneAuthCredential) async {
     setState(() {
       showLoading = true;
     });
-
     try {
-      final authCredential =
+      var _authCredential =
           await _auth.signInWithCredential(phoneAuthCredential);
+
       setState(() {
         showLoading = false;
+        ;
       });
-
-      if (authCredential.user != null) {
+      if (_authCredential != null) {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => Home()));
       }
     } on FirebaseException catch (e) {
       setState(() {
         showLoading = false;
+        ;
       });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.message),
+      ));
     }
   }
 
+  // Page show to take phone number
   getLogin(context) {
-    return Scaffold(
-        backgroundColor: Colors.blue[800],
-        body: SafeArea(
-            child: SingleChildScrollView(
-                padding: EdgeInsets.only(top: 200, left: 20, right: 20),
-                child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                              offset: Offset(10, 10),
-                              color: Colors.black,
-                              blurRadius: 20)
-                        ],
-                        borderRadius: BorderRadius.only(
-                            bottomRight: Radius.circular(20),
-                            topLeft: Radius.circular(20))),
-                    padding: EdgeInsets.all(20),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          Text("Phone Verification",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Text("Correct Format = [+][Country-code][number]",
-                              style: TextStyle(color: Colors.blue)),
-                          SizedBox(height: 25),
-                          TextFormField(
-                            controller: numberController,
-                            autovalidate: true,
-                            validator: MultiValidator([
-                              RequiredValidator(errorText: "Cannot be empty*"),
-                              MinLengthValidator(10,
-                                  errorText: "Must be 10 digits"),
-                            ]),
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              hintText: "Enter Phone Number",
-                            ),
-                          ),
-                          SizedBox(height: 25),
-                          ElevatedButton(
-                              onPressed: () async {
-                                if (_formKey.currentState!.validate()) {
-                                  showLoading = true;
-                                  await _auth.verifyPhoneNumber(
-                                      //1
-                                      phoneNumber: numberController.text,
-                                      //2
-                                      verificationCompleted:
-                                          (phoneAuthCredential) async {
-                                        setState(() {
-                                          showLoading = false;
-                                        });
-                                        //signWithCredential(phoneAuthCredential);
-                                      },
-                                      //3
-                                      verificationFailed:
-                                          (phoneVerificationFailed) {
-                                        setState(() {
-                                          showLoading = false;
-                                        });
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                                content: Text(
-                                                    phoneVerificationFailed
-                                                        .message)));
-                                      },
-                                      //4
-                                      codeSent: (verificationId,
-                                          resendingToken) async {
-                                        setState(() {
-                                          showLoading = false;
-                                          currentState = MobileVerificationState
-                                              .SHOW_OTP_PAGE;
-                                          this.VerificationId = verificationId;
-                                        });
-                                      },
-                                      //5
-                                      codeAutoRetrievalTimeout:
-                                          (verificationId) async {});
-                                }
-                              },
-                              child: Text("Send OTP")),
-                        ],
-                      ),
-                    )))));
+    return Container(
+      child: Form(
+        key: _key,
+        child: Column(
+          children: [
+            Text("Phone Verification",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            Text("Format => [+] [country code] [phone number]",
+                style: TextStyle(color: Colors.black, fontSize: 15)),
+            SizedBox(height: 30),
+            TextFormField(
+              controller: phoneController,
+              autovalidate: true,
+              validator: MultiValidator([
+                RequiredValidator(errorText: "Required*"),
+                MinLengthValidator(10, errorText: "Invalid Phone number*")
+              ]),
+              decoration: InputDecoration(
+                  hintText: "Phone number",
+                  labelText: "Number",
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(width: 10),
+                      borderRadius: BorderRadius.circular(10))),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  elevation: 8, shadowColor: Colors.black),
+              child: tapped ? Icon(Icons.check) : Text("Send OTP"),
+              onPressed: () async {
+                if (_key.currentState!.validate()) {
+                  setState(() {
+                    showLoading = true;
+                    tapped = true;
+                  });
+                  ;
+
+                  await _auth.verifyPhoneNumber(
+                      // 1
+                      phoneNumber: phoneController.text,
+                      // 2
+                      verificationCompleted: (phoneAuthCredential) async {
+                        setState(() {
+                          showLoading = false;
+                        });
+                      },
+                      // 3
+                      verificationFailed: (verificationFailed) async {
+                        setState(() {
+                          showLoading = false;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(verificationFailed.message),
+                        ));
+                      },
+                      // 4
+                      codeSent: (verificationId, resendingToken) async {
+                        setState(() {
+                          showLoading = false;
+                          currentState = MobileVerificationState.show_otp;
+                          this.VerificationId = verificationId;
+                        });
+                      },
+                      // 5
+                      codeAutoRetrievalTimeout: (phoneAuthCredential) async {});
+                }
+              },
+            )
+          ],
+        ),
+      ),
+      padding: EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
+      decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black, offset: Offset(10, 20), blurRadius: 20)
+          ],
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(25), bottomRight: Radius.circular(25))),
+    );
   }
 
+  // Page showed after recieving OTP
   getOtp(context) {
-    return Scaffold(
-        backgroundColor: Colors.blue[800],
-        body: SafeArea(
-            child: SingleChildScrollView(
-                padding: EdgeInsets.only(top: 200, left: 20, right: 20),
-                child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                              offset: Offset(10, 10),
-                              color: Colors.black,
-                              blurRadius: 20)
-                        ],
-                        borderRadius: BorderRadius.only(
-                            bottomRight: Radius.circular(20),
-                            topLeft: Radius.circular(20))),
-                    padding: EdgeInsets.all(20),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          Text("OTP Verification",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
-                          SizedBox(height: 25),
-                          TextFormField(
-                            controller: otpController,
-                            autovalidate: true,
-                            validator: MultiValidator([
-                              RequiredValidator(errorText: "Cannot be empty*"),
-                            ]),
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              hintText: "Enter OTP",
-                            ),
-                          ),
-                          SizedBox(height: 25),
-                          ElevatedButton(
-                              onPressed: () async {
-                                if (_formKey.currentState!.validate()) {
-                                  AuthCredential phoneAuthCredential =
-                                      PhoneAuthProvider.credential(
-                                          verificationId: this.VerificationId,
-                                          smsCode: otpController.text);
+    return Container(
+      child: Column(
+        children: [
+          Text("OTP Verification",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold)),
+          SizedBox(height: 30),
+          TextFormField(
+            controller: otpController,
+            validator: MultiValidator([
+              RequiredValidator(errorText: "Required*"),
+            ]),
+            decoration: InputDecoration(
+                hintText: "Enter OTP",
+                labelText: "OTP",
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(width: 10),
+                    borderRadius: BorderRadius.circular(10))),
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                elevation: 8, shadowColor: Colors.black),
+            child: Text("Verify OTP"),
+            onPressed: () async {
+              AuthCredential phoneAuthCredential = PhoneAuthProvider.credential(
+                  verificationId: VerificationId, smsCode: otpController.text);
 
-                                  signWithCredential(phoneAuthCredential);
-                                }
-                              },
-                              child: Text("Verify OTP")),
-                        ],
-                      ),
-                    )))));
+              signIn(phoneAuthCredential);
+            },
+          )
+        ],
+      ),
+      padding: EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
+      decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black, offset: Offset(10, 20), blurRadius: 20)
+          ],
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(25), bottomRight: Radius.circular(25))),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return showLoading
-        ? Center(child: CircularProgressIndicator())
-        : currentState == MobileVerificationState.SHOW_PHONENUMBER_PAGE
-            ? getLogin(context)
-            : getOtp(context);
+    return Material(
+        child: Container(
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Colors.blue, Colors.black],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight)),
+            child: SafeArea(
+                child: SingleChildScrollView(
+              padding: EdgeInsets.only(top: 150, left: 20, right: 20),
+              child: Container(
+                  child: showLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : currentState == MobileVerificationState.Show_login
+                          ? getLogin(context)
+                          : getOtp(context)),
+            ))));
   }
 }
