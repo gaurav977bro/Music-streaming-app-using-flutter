@@ -16,9 +16,6 @@ class My_Drawer extends StatefulWidget {
 class _My_DrawerState extends State<My_Drawer> {
   FirebaseAuth _auth = FirebaseAuth.instance;
 
-  var userName = TextEditingController();
-  var userEmail;
-
   final _key = GlobalKey<FormState>();
 
   changeInfo(context) {
@@ -71,7 +68,6 @@ class _My_DrawerState extends State<My_Drawer> {
   textField() {
     return TextFormField(
       validator: RequiredValidator(errorText: "Required*"),
-      controller: userName,
       decoration: InputDecoration(
         hintText: "Name",
         labelText: "enter your name",
@@ -84,7 +80,6 @@ class _My_DrawerState extends State<My_Drawer> {
   textField2() {
     return TextFormField(
       validator: RequiredValidator(errorText: "Required*"),
-      controller: userName,
       decoration: InputDecoration(
         hintText: "Email address",
         labelText: "enter your email",
@@ -136,7 +131,7 @@ class _My_DrawerState extends State<My_Drawer> {
                               NetworkImage(SongsWidget.songList[0].image),
                         ),
                         accountEmail: Text("User Email"),
-                        accountName: Text(userName.text.toString()),
+                        accountName: Text("userName)"),
                         currentAccountPictureSize: Size(40, 40),
                       )),
                 ),

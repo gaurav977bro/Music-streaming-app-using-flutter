@@ -44,13 +44,6 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         drawer: My_Drawer(),
-        // Drawer(
-        //     child: Container(
-        //         decoration: BoxDecoration(
-        //             gradient: LinearGradient(
-        //                 colors: [Colors.black, Colors.blue],
-        //                 begin: Alignment.topLeft,
-        //                 end: Alignment.bottomRight)))),
         appBar: AppBar(),
         body: Container(
             decoration: BoxDecoration(
@@ -104,11 +97,12 @@ class _SongListState extends State<SongList> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => Player(contents: item)));
+                        builder: (context) => Player(items: item)));
               },
               leading: Container(
                 width: 100,
-                child: Image.network(item.image),
+                child: Image.network(item.image,
+                    filterQuality: FilterQuality.high, fit: BoxFit.fill),
               ),
               title: Text(
                 item.name,
