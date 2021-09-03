@@ -34,7 +34,6 @@ class _KeepLoggedState extends State<KeepLogged> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _auth = FirebaseAuth.instance;
     _user = _auth.currentUser;

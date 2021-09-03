@@ -1,9 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:mymusic/widgets/MyDrawer.dart';
-import 'package:mymusic/widgets/SongWidget.dart';
 
-import 'LoginScreen.dart';
+import 'package:mymusic/widgets/SongWidget.dart';
 
 class Player extends StatefulWidget {
   final Songs items;
@@ -17,6 +15,9 @@ class Player extends StatefulWidget {
 
 class _PlayerState extends State<Player> {
   bool played = false;
+  AudioPlayer audioPlayer = new AudioPlayer(mode: PlayerMode.LOW_LATENCY);
+  Duration duration = new Duration();
+  Duration position = new Duration();
 
   @override
   Widget build(BuildContext context) {
@@ -106,9 +107,25 @@ class _PlayerState extends State<Player> {
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(40), topLeft: Radius.circular(40))),
         child: Column(
+          // CONTROLLER
           children: [
             SizedBox(height: 30),
-            Slider.adaptive(min: 0.0, value: 0, onChanged: (value) {}),
+            Text(widget.items.name,
+                style: TextStyle(color: Colors.white, fontSize: 25)),
+            SizedBox(height: 30),
+            // SLIDER
+            Slider.adaptive(
+              min: 0.0,
+              value: position.inSeconds.toDouble(),
+              max: duration.inSeconds.toDouble(),
+              onChanged: (double value) {
+                setState(() {
+                  audioPlayer.seek(new Duration(seconds: value.toInt()));
+                });
+              },
+              inactiveColor: Colors.white,
+              activeColor: Colors.white,
+            ),
             SizedBox(
               height: 30,
             ),
@@ -117,30 +134,56 @@ class _PlayerState extends State<Player> {
                 SizedBox(width: 20),
                 IconButton(
                   onPressed: () {},
-                  icon: Icon(Icons.fast_rewind, color: Colors.black, size: 60),
+                  icon: Icon(Icons.fast_rewind, color: Colors.white, size: 60),
                   iconSize: 80,
                 ),
                 SizedBox(width: 30),
                 IconButton(
-                  splashColor: Colors.black,
                   onPressed: () {
-                    setState(() {
-                      played = !played;
-                    });
+                    getAudio();
                   },
                   icon: Icon(played ? Icons.pause : Icons.play_arrow,
-                      color: Colors.black, size: 60),
+                      color: Colors.white, size: 60),
                   iconSize: 80,
                 ),
                 SizedBox(width: 30),
                 IconButton(
                   onPressed: () {},
-                  icon: Icon(Icons.fast_forward, color: Colors.black, size: 60),
+                  icon: Icon(Icons.fast_forward, color: Colors.white, size: 60),
                   iconSize: 80,
                 )
               ],
             )
           ],
         ));
+  }
+
+  void getAudio() async {
+    if (played) {
+      var res = await audioPlayer.pause();
+      if (res == 1) {
+        setState(() {
+          played = false;
+        });
+      }
+    } else {
+      var res = await audioPlayer.play(widget.items.url);
+      if (res == 1) {
+        setState(() {
+          played = true;
+        });
+      }
+    }
+    audioPlayer.onDurationChanged.listen((Duration duration) {
+      setState(() {
+        this.duration = duration;
+      });
+    });
+
+    audioPlayer.onAudioPositionChanged.listen((Duration ps) {
+      setState(() {
+        this.position = ps;
+      });
+    });
   }
 }
