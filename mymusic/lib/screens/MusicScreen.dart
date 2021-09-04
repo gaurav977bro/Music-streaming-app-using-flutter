@@ -1,6 +1,6 @@
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-
 import 'package:mymusic/widgets/SongWidget.dart';
 
 class Player extends StatefulWidget {
@@ -9,13 +9,14 @@ class Player extends StatefulWidget {
     Key? key,
     required this.items,
   }) : super(key: key);
+
   @override
   _PlayerState createState() => _PlayerState();
 }
 
 class _PlayerState extends State<Player> {
   bool played = false;
-  AudioPlayer audioPlayer = new AudioPlayer(mode: PlayerMode.LOW_LATENCY);
+  AudioPlayer audioPlayer = new AudioPlayer();
   Duration duration = new Duration();
   Duration position = new Duration();
 
@@ -118,7 +119,7 @@ class _PlayerState extends State<Player> {
               min: 0.0,
               value: position.inSeconds.toDouble(),
               max: duration.inSeconds.toDouble(),
-              onChanged: (double value) {
+              onChanged: (value) {
                 setState(() {
                   audioPlayer.seek(new Duration(seconds: value.toInt()));
                 });
@@ -167,22 +168,23 @@ class _PlayerState extends State<Player> {
         });
       }
     } else {
-      var res = await audioPlayer.play(widget.items.url);
+      var res =
+          await audioPlayer.play(widget.items.url.toString(), isLocal: false);
       if (res == 1) {
         setState(() {
           played = true;
         });
       }
     }
-    audioPlayer.onDurationChanged.listen((Duration duration) {
+    audioPlayer.onDurationChanged.listen((Duration dd) {
       setState(() {
-        this.duration = duration;
+        this.duration = dd;
       });
     });
 
-    audioPlayer.onAudioPositionChanged.listen((Duration ps) {
+    audioPlayer.onAudioPositionChanged.listen((Duration dd) {
       setState(() {
-        this.position = ps;
+        this.position = dd;
       });
     });
   }
