@@ -80,11 +80,13 @@ class _PlayerState extends State<Player> {
 
   Card picture() {
     return Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         clipBehavior: Clip.antiAliasWithSaveLayer,
         elevation: 10,
-        margin: EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 20),
+        margin: EdgeInsets.only(left: 10, right: 10, top: 30, bottom: 10),
         shadowColor: Colors.black,
         child: Container(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(30)),
             width: double.infinity,
             child: Image.network(widget.items.image,
                 filterQuality: FilterQuality.high, fit: BoxFit.fill)));
@@ -132,7 +134,7 @@ class _PlayerState extends State<Player> {
             ),
             Row(
               children: [
-                SizedBox(width: 20),
+                SizedBox(width: 30),
                 IconButton(
                   onPressed: () {},
                   icon: Icon(Icons.fast_rewind, color: Colors.white, size: 60),

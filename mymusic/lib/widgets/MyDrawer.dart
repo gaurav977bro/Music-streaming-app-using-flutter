@@ -6,6 +6,7 @@ import "package:flutter/material.dart";
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:mymusic/screens/HomeScreen.dart';
 import 'package:mymusic/screens/LoginScreen.dart';
+import 'package:mymusic/screens/PlayList.dart';
 import 'package:mymusic/widgets/SongWidget.dart';
 
 class My_Drawer extends StatefulWidget {
@@ -59,7 +60,7 @@ class _My_DrawerState extends State<My_Drawer> {
   form() {
     return Container(
       child: Text(
-        "Profile Setting",
+        "Profile Editing",
         style: TextStyle(color: Colors.white, fontSize: 30),
       ),
     );
@@ -136,6 +137,17 @@ class _My_DrawerState extends State<My_Drawer> {
                       )),
                 ),
                 SizedBox(height: 30),
+                ListTile(
+                    leading: Icon(Icons.library_music, color: Colors.white),
+                    title: Text("Play List",
+                        style: TextStyle(color: Colors.white)),
+                    subtitle:
+                        Text("songs", style: TextStyle(color: Colors.white)),
+                    trailing: Icon(Icons.arrow_forward, color: Colors.white),
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => playList()));
+                    }),
                 ListTile(
                   onTap: () {
                     Navigator.push(

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import "package:flutter/material.dart";
 import 'package:mymusic/screens/HomeScreen.dart';
 import 'package:mymusic/screens/LoginScreen.dart';
+import 'package:mymusic/screens/PlayList.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,9 @@ class MyMusic extends StatelessWidget {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: Home());
+        home: Home()
+        // playList()
+        );
   }
 }
 
